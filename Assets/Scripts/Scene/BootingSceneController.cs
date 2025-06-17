@@ -8,6 +8,11 @@ public class BootingSceneController : SceneController
 {
     public override void OnLoaded()
     {
+        // Configure the WebSocket, subscribe the handler, and connect
+        WebSocketHandler webSocketHandler = new WebSocketHandler();
+        NetworkClient.Instance.SubscribeWebSocketHandler(webSocketHandler);
+        NetworkClient.Instance.ConnectWebSocket();
+
         UIManager.Instance.Show<SplashPanel>();
         Timing.RunCoroutine(ChangeScene());
     }
