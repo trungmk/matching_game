@@ -1,17 +1,55 @@
 using NativeWebSocket;
 using Newtonsoft.Json;
+using System;
 using UnityEngine;
 
-public class WebSocketHandler : IWebSocketHandler
+public class WebSocketHandler : MonoSingleton<WebSocketHandler>, IWebSocketHandler
 {
+    [SerializeField]
+    private NetworkClient _networkClient;
+
+    public event Action OnConnectionSuccess;
+
+    public event Action<BoardMessage> OnGetMessageSuccess;
+
+    public event Action OnSocketClosed;
+
+    public event Action OnSocketError;
+
+    private void OnEnable()
+    {
+        _networkClient.SubscribeWebSocketHandler(this);
+    }
+
+    private void OnDisable()
+    {
+        _networkClient.UnsubscribeWebSocketHandler();
+    }
+
     public void HandleClose(WebSocketCloseCode webSocketCloseCode)
     {
         // handle close event from the server
+        if (OnSocketClosed != null)
+        {
+            OnSocketClosed();
+        }
     }
 
     public void HandleError(string errorMessage)
     {
         // handle error message from the server
+        if (OnSocketError != null)
+        {
+            OnSocketError();
+        }
+    }
+
+    public void HandleOpen()
+    {
+        if (OnConnectionSuccess != null)
+        {
+            OnConnectionSuccess();
+        }
     }
 
     public void handleMessage(byte[] messageBytes)
@@ -19,17 +57,20 @@ public class WebSocketHandler : IWebSocketHandler
         try
         {
             string data = System.Text.Encoding.UTF8.GetString(messageBytes);
-            BoardData boardData = JsonConvert.DeserializeObject<BoardData>(data);
+            BoardMessage boardData = JsonConvert.DeserializeObject<BoardMessage>(data);
 
             if (boardData == null || string.IsNullOrEmpty(boardData.Type))
             {
-                Debug.LogError("Invalid board data or type");
                 return;
             }
 
-            if (boardData.Type == "board")
+            if (string.Equals(boardData.Type, "board", System.StringComparison.OrdinalIgnoreCase))
             {
-
+                OnGetMessageSuccess(boardData);
+            }
+            else
+            {
+                Debug.LogWarning("Unknown board data type: " + boardData.Type);
             }
         }
         catch (System.Exception ex)
@@ -39,8 +80,4 @@ public class WebSocketHandler : IWebSocketHandler
         }
     }
 
-    public void HandleOpen()
-    {
-        // handle close event from the server
-    }
 }

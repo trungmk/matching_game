@@ -1,17 +1,31 @@
+using NUnit.Framework;
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public class GameManager : MonoBehaviour
+public class GameManager : MonoSingleton<GameManager>
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
+    [SerializeField]
+    private BoardController _boardController;
 
-    // Update is called once per frame
-    void Update()
+    [SerializeField]
+    private int boardSize = 10;
+
+    public async Task InitGame(Action initCompleted)
     {
-        
+        BoardData boardData = GameDataManager.Instance.CurrentBoardData;
+
+        Debug.Log(boardData);
+        GeneratingTiles.GenerateTile();
+        _boardController.InitializeBoard(new BoardData
+        {
+            Size = boardData.Size,
+        });
+
+        if (initCompleted != null)
+        {
+            initCompleted();
+        }
     }
 }

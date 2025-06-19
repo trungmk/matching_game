@@ -1,11 +1,12 @@
-using System;
+using Newtonsoft.Json;
 
-[Serializable]
+[System.Serializable]
 public class BoardData
 {
-    public string Type;
+    //public IList<IList<BoardItem>> Items;
+    [JsonProperty("items")]
+    public BoardItem[][] Items;
 
-    public Board Board;
-
-    public long TimeStamp;
+    [JsonProperty("size")]
+    public int Size;
 }

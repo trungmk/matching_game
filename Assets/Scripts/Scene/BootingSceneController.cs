@@ -1,28 +1,40 @@
 using Core;
-using UnityEngine;
 using MEC;
-using System.Collections;
+using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class BootingSceneController : SceneController
 {
-    public override void OnLoaded()
+    private void OnEnable()
     {
-        // Configure the WebSocket, subscribe the handler, and connect
-        WebSocketHandler webSocketHandler = new WebSocketHandler();
-        NetworkClient.Instance.SubscribeWebSocketHandler(webSocketHandler);
-        NetworkClient.Instance.ConnectWebSocket();
+        GameDataManager.Instance.OnBoardDataUpdated += HandleBoardDataUpdated;
+    }
 
-        UIManager.Instance.Show<SplashPanel>();
+    private void OnDisable()
+    {
+        GameDataManager.Instance.OnBoardDataUpdated -= HandleBoardDataUpdated;
+    }
+
+    void Start()
+    {
+        ObjectPooling.Instance.Init(null);
+        UIManager.Instance.Show<SplashScreenTransition>();
+
+        // Configure the WebSocket and connect
+        string sessionId = System.Guid.NewGuid().ToString();
+        NetworkClient.Instance.SetSessionId(sessionId);
+        NetworkClient.Instance.ConnectWebSocket();
+    }
+
+    private void HandleBoardDataUpdated(BoardData data)
+    {
         Timing.RunCoroutine(ChangeScene());
     }
 
     private IEnumerator<float> ChangeScene()
     {
-        yield return Timing.WaitForSeconds(2f);
-
+        yield return Timing.WaitForSeconds(1f); 
         CoreSceneManager.Instance.ChangeScene(ContextNameGenerated.CONTEXT_GAME);
-
-        UIManager.Instance.Hide<SplashPanel>(isDisable: true, isDestroy: true);
     }
 }

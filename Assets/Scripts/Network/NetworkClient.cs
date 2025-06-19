@@ -1,4 +1,5 @@
 using NativeWebSocket;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class NetworkClient : MonoSingleton<NetworkClient>
@@ -8,9 +9,16 @@ public class NetworkClient : MonoSingleton<NetworkClient>
 
     private WebSocket _websocket;
 
-    private bool _isInitialized = false;
-
     private IWebSocketHandler _webSocketHandler = null;
+
+    private string _sessionId = string.Empty;
+
+    public event System.Action OnConnectionSuccess;
+
+    public void SetSessionId(string sessionId)
+    {
+        _sessionId = sessionId;
+    }
 
     public void SubscribeWebSocketHandler(IWebSocketHandler webSocketHandler)
     {
@@ -22,17 +30,21 @@ public class NetworkClient : MonoSingleton<NetworkClient>
         _webSocketHandler = null;
     }
 
-    // Start is called before the first frame update
     public async void ConnectWebSocket()
     {
+        if (string.IsNullOrEmpty(_sessionId))
+        {
+            Debug.LogError("Session ID is not set.");
+            return;
+        }
+
+        string finalUri = _socketUri.Replace("{session-id}", _sessionId);
+        _websocket = new WebSocket(finalUri);
+
         try
         {
-            _websocket = new WebSocket(_socketUri);
-
             _websocket.OnOpen += () =>
             {
-                Debug.Log("Connection open!");
-
                 if (_webSocketHandler != null)
                 {
                     _webSocketHandler.HandleOpen();
@@ -61,9 +73,6 @@ public class NetworkClient : MonoSingleton<NetworkClient>
 
             _websocket.OnMessage += (bytes) =>
             {
-                Debug.Log("Message received!");
-                Debug.Log("Bytes: " + System.BitConverter.ToString(bytes));
-
                 if (_webSocketHandler != null && bytes != null && bytes.Length > 0)
                 {
                     _webSocketHandler.handleMessage(bytes);
@@ -71,10 +80,6 @@ public class NetworkClient : MonoSingleton<NetworkClient>
             };
 
             await _websocket.Connect();
-
-            InvokeRepeating(nameof(SendWebSocketMessage), 0.0f, 0.3f);
-
-            _isInitialized = true;
         }
         catch (System.Exception ex)
         {
@@ -85,35 +90,8 @@ public class NetworkClient : MonoSingleton<NetworkClient>
     void Update()
     {
 #if !UNITY_WEBGL || UNITY_EDITOR
-        if (!_isInitialized)
-            return;
-        
         _websocket?.DispatchMessageQueue();
 #endif
-    }
-
-    async void SendWebSocketMessage()
-    {
-        if (_websocket != null && _websocket.State == WebSocketState.Open)
-        {
-            try
-            {
-
-                // Sending bytes
-                await _websocket.Send(new byte[] { 10, 20, 30 });
-
-                // Sending plain text
-                await _websocket.SendText("plain text message");
-            }
-            catch (System.Exception ex)
-            {
-                Debug.LogError("Failed to send WebSocket message: " + ex.Message);
-            }
-        }
-        else
-        {
-            Debug.LogWarning("WebSocket is not open. Message not sent.");
-        }
     }
 
     private async void OnApplicationQuit()
@@ -132,7 +110,7 @@ public class NetworkClient : MonoSingleton<NetworkClient>
         }
     }
 
-    public async void SendMessage(string message)
+    public async Task SendSocketMessage(string message)
     {
         if (_websocket != null && _websocket.State == WebSocketState.Open)
         {
