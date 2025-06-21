@@ -1,14 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum Direction
-{
-    Up,
-    Down,
-    Left,
-    Right
-}
-
 public class MatchSystem
 {
     private static readonly Vector2Int[] _directions = new Vector2Int[]
@@ -19,7 +11,7 @@ public class MatchSystem
             new Vector2Int(-1, 0)   
     };
 
-    public static List<Tile> CheckMatchAtPosition(Vector2Int boardPos, BoardController boardController)
+    public static HashSet<Tile> CheckMatchAtPosition(Vector2Int boardPos, BoardController boardController)
     {
         if (!IsValidPosition(boardPos, boardController.Board.BoardSize))
         {
@@ -27,7 +19,7 @@ public class MatchSystem
             return null;
         }
 
-        Tile currentTile = boardController.GetTileByBoardPosition(boardPos) as Tile;
+        Tile currentTile = boardController.GetTileByBoardPosition<Tile>(boardPos);
 
         if (currentTile == null)
         {
@@ -35,43 +27,87 @@ public class MatchSystem
         }
 
         int boardSize = boardController.Board.BoardSize;
-        List<Tile> visitedTiles = new List<Tile>();
-        visitedTiles.Add(currentTile);
-        int index = 0;
+        HashSet<Tile> matchingGroup = new HashSet<Tile>();
+        Queue<Tile> tilesToCheck = new Queue<Tile>();
+
+        matchingGroup.Add(currentTile);
+        tilesToCheck.Enqueue(currentTile);
         TileType checkType = currentTile.TileType;
 
-        while (index < visitedTiles.Count)
+        while (tilesToCheck.Count > 0)
         {
-            currentTile = visitedTiles[index];
+            currentTile = tilesToCheck.Dequeue();
+            
             for (int i = 0; i < _directions.Length; i++)
             {
                 Vector2Int needToCheckPos = currentTile.BoardPosition + _directions[i];
                 Tile potentialTile = GetPotentialTile(needToCheckPos, boardSize, checkType, boardController);
 
-                if (potentialTile != null && !visitedTiles.Contains(potentialTile))
+                if (potentialTile != null && !matchingGroup.Contains(potentialTile))
                 {
-                    visitedTiles.Add(potentialTile);
+                    matchingGroup.Add(potentialTile);
+                    tilesToCheck.Enqueue(potentialTile);
                 }
             }
-
-            index++;
         }
 
-        return visitedTiles;
+        return matchingGroup;
     }
 
-    public static void CheckMatchInitializeBoard(BoardController boardController)
+    public static List<HashSet<Tile>> CheckMatchWholeBoard(BoardController boardController)
     {
+        List<HashSet<Tile>> matchedChains = new List<HashSet<Tile>>();
+        BoardMono board = boardController.Board;
+        int boardSize = board.BoardSize;
+        Vector2Int currentPosition = new Vector2Int(0, 0);
 
+        for (int y = 0; y < boardSize; y++)
+        {
+            for (int x = 0; x < boardSize; x++)
+            {
+                currentPosition.x = x;
+                currentPosition.y = y;
+                Tile tile = boardController.GetTileByBoardPosition<Tile>(currentPosition);
+
+                if (tile == null)
+                    continue;
+
+                if (IsTileInMatchedChains(matchedChains, tile))
+                {
+                    continue;
+                }
+
+                HashSet<Tile> tiles = CheckMatchAtPosition(currentPosition, boardController);
+                if (tiles.Count >= 3)
+                {
+                    matchedChains.Add(tiles);
+                }
+            }
+        }
+
+        return matchedChains;
+    }
+
+    private static bool IsTileInMatchedChains(List<HashSet<Tile>> tiles, Tile tile)
+    {
+        foreach (var chain in tiles)
+        {
+            if (chain.Contains(tile))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static Tile GetPotentialTile(Vector2Int boardPos, int boardSize, TileType tileType, BoardController boardController)
     {
         if (IsValidPosition(boardPos, boardSize))
         {
-            Tile tile = boardController.GetTileByBoardPosition(boardPos) as Tile;
+            Tile tile = boardController.GetTileByBoardPosition<Tile>(boardPos);
 
-            if (tile != null && tileType == tile.TileType)
+            if (tile != null && tile.TileType == tileType)
             {
                 return tile;
             }

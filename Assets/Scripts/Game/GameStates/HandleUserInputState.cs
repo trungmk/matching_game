@@ -1,9 +1,9 @@
 ﻿using Core;
+using MEC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 public class HandleUserInputState : IState
@@ -42,45 +42,37 @@ public class HandleUserInputState : IState
     private void Handle_TouchUpEvent(TouchUpEvent @event)
     {
         Vector2 worldPos = _mainCamera.ScreenToWorldPoint(@event.TouchedPosition);
-        BaseTile tile = _stateMachine.BoardController.GetTileFromWorldPosition(worldPos);
+        Tile tile = _stateMachine.BoardController.GetTileFromWorldPosition<Tile>(worldPos);
 
-        if (tile != null && tile is Tile)
+        if (tile == null)
         {
-            _secondTile = tile;
+            Debug.LogWarning("Second Tile not found at the touched position.");
+            return;
+        }
 
-            if (_firstTile != null && _secondTile != null)
-            {
-                if (IsAdjacent(_firstTile.BoardPosition, _secondTile.BoardPosition))
-                {
-                    _stateMachine.BoardController.SwapTiles(_firstTile, _secondTile);
-                    _stateMachine.BoardController.PositionChangedList.Add(_firstTile.BoardPosition);
-                    _stateMachine.BoardController.PositionChangedList.Add(_secondTile.BoardPosition);
-                    _stateMachine.TransitionToState(StateType.Matching);
-                }
+        _secondTile = tile;
 
-                // Reset the selected tiles
-                _firstTile = null;
-                _secondTile = null;
-            }
-            else
+        if (_firstTile != null && _secondTile != null)
+        {
+            if (!IsAdjacent(_firstTile.BoardPosition, _secondTile.BoardPosition))
             {
-                Debug.LogWarning("One or both of the selected tiles are null.");
+                return;
             }
+
+            Timing.RunCoroutine(Swap());
         }
         else
         {
-            Debug.LogWarning("No tile found at the touched position.");
+            Debug.LogWarning("One or both of the selected tiles are null.");
         }
-
-
     }
 
     private void Handle_TouchDownEvent(TouchDownEvent @event)
     {
         Vector2 worldPos = Camera.main.ScreenToWorldPoint(@event.TouchedPosition);
-        BaseTile tile = _stateMachine.BoardController.GetTileFromWorldPosition(worldPos);
+        Tile tile = _stateMachine.BoardController.GetTileFromWorldPosition<Tile>(worldPos);
 
-        if (tile != null && tile is Tile)
+        if (tile != null)
         {
             _firstTile = tile;
         }
@@ -94,6 +86,43 @@ public class HandleUserInputState : IState
     private void Handle_DragEvent(DragEvent @event)
     {
         
+    }
+
+    private void RevertSwapTiles(BaseTile firstTile, BaseTile secondTile)
+    {
+        
+    }
+
+    private IEnumerator<float> Swap()
+    {
+        yield return Timing.WaitForOneFrame;
+
+        _stateMachine.BoardController.SwapTiles(_firstTile, _secondTile);
+
+        yield return Timing.WaitForSeconds(0.12f);
+
+        HashSet<Tile> matchedTiles = MatchSystem.CheckMatchAtPosition(_firstTile.BoardPosition, _stateMachine.BoardController);
+        if (matchedTiles.Count >= 3)
+        {
+            _stateMachine.TransitionToState(GameStateType.MatchingAllBoard);
+            yield break;
+        }
+
+        matchedTiles = MatchSystem.CheckMatchAtPosition(_secondTile.BoardPosition, _stateMachine.BoardController);
+        if (matchedTiles.Count >= 3)
+        {
+            _stateMachine.TransitionToState(GameStateType.MatchingAllBoard);
+            yield break;
+        }
+
+        // Revert
+        _stateMachine.BoardController.SwapTiles(_secondTile, _firstTile);
+
+        yield return Timing.WaitForOneFrame;
+        yield return Timing.WaitForOneFrame;
+
+        _secondTile = null;
+        _firstTile = null;
     }
 
     private bool IsAdjacent(Vector2Int a, Vector2Int b)

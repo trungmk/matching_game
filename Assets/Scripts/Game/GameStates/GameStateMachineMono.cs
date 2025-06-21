@@ -1,14 +1,16 @@
-﻿using System.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public enum StateType : byte
+public enum GameStateType : byte
 {
     HandleUserInput = 0,
-    Matching,
     GenerateNewTile,
     Reload,
-    Initialization
+    Initialization,
+    MatchingAllBoard
 }
 
 public class GameStateMachineMono : MonoBehaviour
@@ -20,15 +22,14 @@ public class GameStateMachineMono : MonoBehaviour
     private float _stateTransitionTime = 0.2f;
 
     private IState _currentState;
-    private StateType _currentStateType;
-    private MatchSystem _matchSystem;
+    private GameStateType _currentStateType;
 
     // Game States
     private GenerateNewTileState _generateNewTileState;
     private HandleUserInputState _handleUserInputState;
-    private MatchingState _matchingState;
     private ReloadState _reloadState;
     private InitializationState _initializationState;
+    private MatchingAllBoardState _matchingAllBoardState;
 
     public BoardController BoardController => _boardController;
 
@@ -36,24 +37,27 @@ public class GameStateMachineMono : MonoBehaviour
     {
         _generateNewTileState = new GenerateNewTileState(this);
         _handleUserInputState = new HandleUserInputState(this);
-        _matchingState = new MatchingState(this);
         _reloadState = new ReloadState(this);
         _initializationState = new InitializationState(this);
+        _matchingAllBoardState = new MatchingAllBoardState(this);
     }
 
-    public void Initialize(bool isLocalData)
+    public void Initialize()
     {
-        if (isLocalData)
-        {
-            // Set the initial state
-            _currentStateType = StateType.HandleUserInput;
-            TransitionTo(_handleUserInputState);
-        }
-        else
-        {
-            _currentStateType = StateType.Initialization;
-            TransitionTo(_initializationState);
-        }
+        //if (isLocalData)
+        //{
+        //    // Set the initial state
+        //    _currentStateType = GameStateType.HandleUserInput;
+        //    TransitionTo(_handleUserInputState);
+        //}
+        //else
+        //{
+        //    _currentStateType = GameStateType.Initialization;
+        //    TransitionTo(_initializationState);
+        //}
+
+        _currentStateType = GameStateType.Initialization;
+        TransitionTo(_initializationState);
     }
 
     public void TransitionTo(IState newState)
@@ -73,26 +77,30 @@ public class GameStateMachineMono : MonoBehaviour
         _currentState.Enter();
     }
 
-    public void TransitionToState(StateType stateType)
+    public void TransitionToState(GameStateType stateType)
     {
         IState targetState = null;
 
         switch (stateType)
         {
-            case StateType.HandleUserInput:
+            case GameStateType.HandleUserInput:
                 targetState = _handleUserInputState;
                 break;
 
-            case StateType.Matching:
-                targetState = _matchingState;
-                break;
-
-            case StateType.GenerateNewTile:
+            case GameStateType.GenerateNewTile:
                 targetState = _generateNewTileState;
                 break;
 
-            case StateType.Reload:
+            case GameStateType.Reload:
                 targetState = _reloadState;
+                break;
+
+            case GameStateType.Initialization:
+                targetState = _initializationState;
+                break;
+
+            case GameStateType.MatchingAllBoard:
+                targetState = _matchingAllBoardState;
                 break;
         }
 

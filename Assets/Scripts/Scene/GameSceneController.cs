@@ -15,7 +15,7 @@ public class GameSceneController : SceneController
 
         //_levelManager.LoadLevel(1);
 
-        _gameManager.InitGame(() =>
+        _ = _gameManager.InitGame(() =>
         {
             UIManager.Instance.Hide<SplashScreenTransition>(isDisable: true, isDestroy: true);
         });

@@ -15,6 +15,16 @@ MonoBehaviour:
   m_GroupName: Default Local Group
   m_GUID: 87ac8765932ffd140a4796e2b021efea
   m_SerializeEntries:
+  - m_GUID: 5d0e348b438204bdf80abdbe1c797c4c
+    m_Address: OrangeTileParticles
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 77143c08c4c6e4516b788e36b9d21b5d
+    m_Address: RedTileParticles
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 795eea96d1778234eb93a23da4273062
     m_Address: BoardTemplate10x10
     m_ReadOnly: 0
@@ -32,6 +42,21 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b0d4d0e343f71ad4785a25d3276be2c5
     m_Address: Tile
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b9851141d6ebe4eb399de3181eacf17f
+    m_Address: GreenTileParticles
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cddb745bcffe7476eb59c5b9149bc971
+    m_Address: BlueTileParticles
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: dd88848d705ee4ef1a5a15c7bf60d465
+    m_Address: YellowTileParticles
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

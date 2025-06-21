@@ -44,5 +44,8 @@ TagManager:
   - name: InGame
     uniqueID: 44903281
     locked: 0
+  - name: FX
+    uniqueID: 2638417535
+    locked: 0
   m_RenderingLayers:
   - Default

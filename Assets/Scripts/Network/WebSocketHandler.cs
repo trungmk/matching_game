@@ -2,6 +2,7 @@ using NativeWebSocket;
 using Newtonsoft.Json;
 using System;
 using UnityEngine;
+using Core;
 
 public class WebSocketHandler : MonoSingleton<WebSocketHandler>, IWebSocketHandler
 {

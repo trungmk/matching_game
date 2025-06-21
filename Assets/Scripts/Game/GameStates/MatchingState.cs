@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
+using Core;
+using MEC;
+using Cysharp.Threading.Tasks;
 
 public class MatchingState : IState
 {
@@ -23,13 +25,13 @@ public class MatchingState : IState
         List<Vector2Int> positionChangedList = _stateMachine.BoardController.PositionChangedList;
         if (positionChangedList.Count <= 0)
         {
-            _stateMachine.TransitionToState(StateType.HandleUserInput);
+            _stateMachine.TransitionToState(GameStateType.HandleUserInput);
             return;
         }
 
         for (int i = 0; i < positionChangedList.Count; i++)
         {
-            List<Tile> matchedTiles = MatchSystem.CheckMatchAtPosition(positionChangedList[i], _stateMachine.BoardController);
+            HashSet<Tile> matchedTiles = MatchSystem.CheckMatchAtPosition(positionChangedList[i], _stateMachine.BoardController);
             if (matchedTiles != null || matchedTiles.Count >= 3)
             {
                 _stateMachine.BoardController.MatchedChains.Add(matchedTiles);
@@ -46,7 +48,6 @@ public class MatchingState : IState
 
     public void Exit()
     {
-        
     }
 
     public void Update()

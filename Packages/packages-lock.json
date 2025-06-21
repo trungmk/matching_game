@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.cysharp.unitask": {
+      "version": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "f213ff497e4ff462a77319cf677cf20cc0860ca9"
+    },
     "com.endel.nativewebsocket": {
       "version": "https://github.com/endel/NativeWebSocket.git#upm",
       "depth": 0,
@@ -8,14 +15,14 @@
       "hash": "1d8b49b3fee41c09a98141f1f1a5e4db47e14229"
     },
     "com.maktrung.core": {
-      "version": "https://bitbucket.org/trung_ma/core_package.git#singleton",
+      "version": "https://github.com/trungmk/unity_template_singleton.git#master",
       "depth": 0,
       "source": "git",
       "dependencies": {
         "com.unity.nuget.newtonsoft-json": "2.0.2",
         "com.unity.addressables": "2.3.16"
       },
-      "hash": "f97d85adb1d879794c3bda15bf76fa8b1435d7b4"
+      "hash": "d0953fde1ccdd1db8c86cf5f896ea69bef83114d"
     },
     "com.unity.2d.animation": {
       "version": "10.1.4",

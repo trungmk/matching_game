@@ -1,12 +1,15 @@
 ﻿using Core;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public class TileFactory
 {
-    public async Task<Blocker> CreateBlocker(string blockerTypeString)
+    private const string TILE_ADDRESS = "Tile";
+    private const string BLOCKER_ADDRESS = "Blocker";
+
+    public async UniTask<Blocker> CreateBlocker(string blockerTypeString)
     {
-        Blocker blocker = await ObjectPooling.Instance.Get<Blocker>("Blocker");
+        Blocker blocker = await ObjectPooling.Instance.Get<Blocker>(BLOCKER_ADDRESS);
 
         if (blocker == null)
         {
@@ -20,9 +23,9 @@ public class TileFactory
         return blocker;
     }
 
-    public async Task<Tile> CreateTile(string tileTypeString)
+    public async UniTask<Tile> CreateTile(string tileTypeString)
     {
-        Tile tile = await ObjectPooling.Instance.Get<Tile>("Tile");
+        Tile tile = await ObjectPooling.Instance.Get<Tile>(TILE_ADDRESS);
         if (tile == null)
         {
             Debug.LogError("Could not get tile from pool");

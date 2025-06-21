@@ -18,7 +18,11 @@ public class BootingSceneController : SceneController
 
     void Start()
     {
-        ObjectPooling.Instance.Init(null);
+        ObjectPooling.Instance.Init((o) =>
+        {
+            Timing.RunCoroutine(ChangeScene());
+        });
+
         UIManager.Instance.Show<SplashScreenTransition>();
 
         // Configure the WebSocket and connect
@@ -29,12 +33,12 @@ public class BootingSceneController : SceneController
 
     private void HandleBoardDataUpdated(BoardData data)
     {
-        Timing.RunCoroutine(ChangeScene());
+        
     }
 
     private IEnumerator<float> ChangeScene()
     {
-        yield return Timing.WaitForSeconds(1f); 
+        yield return Timing.WaitForSeconds(2f); 
         CoreSceneManager.Instance.ChangeScene(ContextNameGenerated.CONTEXT_GAME);
     }
 }

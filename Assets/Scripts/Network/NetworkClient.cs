@@ -1,6 +1,10 @@
-using NativeWebSocket;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
+using NativeWebSocket;
+using System.Text;
+using Newtonsoft.Json;
+using System.Collections.Concurrent;
+using System;
 
 public class NetworkClient : MonoSingleton<NetworkClient>
 {
@@ -110,7 +114,7 @@ public class NetworkClient : MonoSingleton<NetworkClient>
         }
     }
 
-    public async Task SendSocketMessage(string message)
+    public async UniTask SendSocketMessage(string message)
     {
         if (_websocket != null && _websocket.State == WebSocketState.Open)
         {

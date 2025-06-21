@@ -1,8 +1,9 @@
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoSingleton<GameManager>
 {
@@ -18,28 +19,26 @@ public class GameManager : MonoSingleton<GameManager>
     [SerializeField]
     private bool isDebugUseSocketData = false;
 
-    public void InitGame(Action initCompleted)
+    public async UniTask InitGame(Action initCompleted)
     {
         if (isDebugUseSocketData)
         {
-            _gameStateMachine.Initialize(false);
+            _gameStateMachine.Initialize();
+
+            if (initCompleted != null)
+            {
+                initCompleted();
+            }
         }
         else
         {
-            GeneratingTiles.GenerateTile();
-            //_boardController.InitializeBoard(new BoardData
-            //{
-            //    Size = boardData.Size,
-            //});
+            BoardData boardData = await GeneratingTiles.GenerateTile();
+            GameDataManager.Instance.UpdateBoardData(boardData);
 
-            _gameStateMachine.Initialize(true);
-        }
-
-        
-
-        if (initCompleted != null)
-        {
-            initCompleted();
+            if (initCompleted != null)
+            {
+                initCompleted();
+            }
         }
     }
 }
