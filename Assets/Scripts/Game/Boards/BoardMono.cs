@@ -1,4 +1,5 @@
 using Core;
+using DG.Tweening;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -31,6 +32,9 @@ public class BoardMono : MonoBehaviour
     [SerializeField]
     private Transform _cellsHolder;
 
+    [SerializeField]
+    private float _yOffset = 1.5f;
+
     private int _boardSize = 10;
 
     private BoardCell[,] _cells;
@@ -41,6 +45,17 @@ public class BoardMono : MonoBehaviour
 
     private Vector2 bottomLeftWorldPosition;
 
+    private TileFactory _tileFactory;
+
+    private Vector2Int _outOfBound = new Vector2Int(-1, -1);
+
+    public int BoardSize => _boardSize;
+
+    private void Awake()
+    {
+        _tileFactory = new TileFactory();
+    }
+
     public void Initialize(BoardData boardData)
     {
         _boardSize = Mathf.Clamp(boardData.Size, _minSize, _maxSize);
@@ -49,7 +64,7 @@ public class BoardMono : MonoBehaviour
         CalculateSizes();
         CalculateBoardOriginPositionAtBottomLeft();
         InitCellBackground(_boardSize);
-        //InitBoard(boardData.Items);
+        InitBoard(boardData.Items);
     }
 
     private void CalculateSizes()
@@ -78,11 +93,11 @@ public class BoardMono : MonoBehaviour
 
     private void CalculateBoardOriginPositionAtBottomLeft()
     {
-
         float totalSize = _cellSize * (_boardSize - 1);
         bottomLeftWorldPosition = new Vector2(-totalSize / 2f, -totalSize / 2f);
-        bottomLeftWorldPosition.y -= 1.5f;
-        _cellBGHolder.position = bottomLeftWorldPosition;
+        bottomLeftWorldPosition.y -= _yOffset;
+        _cellBGHolder.localPosition = bottomLeftWorldPosition;
+        _cellsHolder.localPosition = bottomLeftWorldPosition;
     }
 
     private async void InitCellBackground(int size)
@@ -93,7 +108,7 @@ public class BoardMono : MonoBehaviour
             {
                 CellBG cellBG = await ObjectPooling.Instance.Get<CellBG>("CellBG");
                 cellBG.transform.SetParent(_cellBGHolder);
-                cellBG.transform.localPosition = new Vector3(x * _cellBGSize, y * _cellBGSize, 0f);
+                cellBG.transform.localPosition = new Vector2(x * _cellBGSize, y * _cellBGSize);
                 cellBG.transform.localScale = new Vector2(_cellBGSize, _cellBGSize);
                 cellBG.SetColor((x + y) % 2 == 0);
                 cellBG.gameObject.SetActive(true);
@@ -110,72 +125,88 @@ public class BoardMono : MonoBehaviour
             {
                 _cells[x, y] = new BoardCell();
                 
-                Tile tile = null;
+                BaseTile tile = null;
                 BoardItem boardItemAtCell = boardItemRow[x];
                 if (boardItemAtCell.Type.Equals("X"))
                 {
-                    tile = await CreateBlocker(boardItemAtCell.Type);
+                    tile = await _tileFactory.CreateBlocker(boardItemAtCell.Type);
                     _cells[x, y].IsBlocker = true;
                 }
                 else
                 {
-                    tile = await CreateTile(boardItemAtCell.Type);
+                    tile = await _tileFactory.CreateTile(boardItemAtCell.Type);
                 }
 
                 _cells[x, y].IsEnable = true;
                 _cells[x, y].Tile = tile;
-                _cells[x, y].Position = new Vector2Int(x, y);
+                _cells[x, y].LocalPosition = new Vector2(x * _cellSize, y * _cellSize);
+
+                tile.transform.SetParent(_cellsHolder);
+                tile.BoardPosition = new Vector2Int(x, y);
+                tile.transform.localPosition = _cells[x, y].LocalPosition;
+                tile.transform.localScale = new Vector2(_cellSize, _cellSize);
             }
         }
     }
 
-    private async Task<Blocker> CreateBlocker(string blockerTypeString)
+    public Vector2Int GetTilePositionFromWorldPosition(Vector2 worldPosition)
     {
-        Blocker blocker = await ObjectPooling.Instance.Get<Blocker>("Blocker");
-        BlockerType blockerType = ConvertBlockDataTypeToBlockerType(blockerTypeString);
-        blocker.Setup(blockerType);
+        Vector3 localPos = _cellsHolder.InverseTransformPoint(worldPosition);
+        int x = Mathf.RoundToInt(localPos.x / _cellSize);
+        int y = Mathf.RoundToInt(localPos.y / _cellSize);
 
-        return blocker;
-    }
-
-    private async Task<Tile> CreateTile(string tileTypeString)
-    {
-        Tile tile = await ObjectPooling.Instance.Get<Tile>("Tile");
-        TileType tileType = ConvertBlockDataTypeToTileType(tileTypeString);
-        tile.Setup(tileType);
-
-        return null;
-    }
-
-    private TileType ConvertBlockDataTypeToTileType(string tileType)
-    {
-        switch (tileType)
+        if (x < 0 || x >= _boardSize || y < 0 || y >= _boardSize)
         {
-            case "A":
-                return TileType.A;
-            case "B":
-                return TileType.B;
-            case "C":
-                return TileType.C;
-            case "D":
-                return TileType.D;
-            case "E":
-                return TileType.E;
-            default:
-                // Default choose A
-                return TileType.A;
+            return _outOfBound; 
         }
+
+        return new Vector2Int(x, y);
     }
 
-    private BlockerType ConvertBlockDataTypeToBlockerType(string blockerType)
+    public BaseTile GetTileFromWorldPosition(Vector2 worldPosition)
     {
-        switch (blockerType)
+        Vector2Int tilePosition = GetTilePositionFromWorldPosition(worldPosition);
+
+        if (tilePosition == _outOfBound)
         {
-            case "X":
-                return BlockerType.X;
-            default:
-                // Default choose A
-                return BlockerType.X;
+            return null; 
         }
+
+        return _cells[tilePosition.x, tilePosition.y].Tile;
+    }
+
+    public void SwapTiles(BaseTile firstTile, BaseTile secondTile)
+    {
+        if (firstTile == null || secondTile == null)
+        {
+            Debug.LogError("One or both tiles are null.");
+            return;
+        }
+
+        Vector2 nextFirstPos = secondTile.transform.localPosition;
+        Vector2 nextSecondPos = firstTile.transform.localPosition;
+
+        firstTile.transform.DOLocalMove(nextFirstPos, 0.12f);
+        secondTile.transform.DOLocalMove(nextSecondPos, 0.12f);
+
+        Vector2Int firstPos = firstTile.BoardPosition;
+        Vector2Int secondPos = secondTile.BoardPosition;
+
+        firstTile.BoardPosition = secondPos;
+        secondTile.BoardPosition = firstPos;
+
+        _cells[firstPos.x, firstPos.y].Tile = secondTile;
+        _cells[secondPos.x, secondPos.y].Tile = firstTile;
+    }
+
+    public BaseTile GetTileByBoardPosition(Vector2Int boardPosition)
+    {
+        if (boardPosition.x < 0 || boardPosition.x >= _boardSize || 
+            boardPosition.y < 0 || boardPosition.y >= _boardSize)
+        {
+            return null;
+        }
+
+        return _cells[boardPosition.x, boardPosition.y].Tile;
     }
 }

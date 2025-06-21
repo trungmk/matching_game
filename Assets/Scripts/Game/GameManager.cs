@@ -10,18 +10,32 @@ public class GameManager : MonoSingleton<GameManager>
     private BoardController _boardController;
 
     [SerializeField]
+    private GameStateMachineMono _gameStateMachine;
+
+    [SerializeField]
     private int boardSize = 10;
 
-    public async Task InitGame(Action initCompleted)
-    {
-        BoardData boardData = GameDataManager.Instance.CurrentBoardData;
+    [SerializeField]
+    private bool isDebugUseSocketData = false;
 
-        Debug.Log(boardData);
-        GeneratingTiles.GenerateTile();
-        _boardController.InitializeBoard(new BoardData
+    public void InitGame(Action initCompleted)
+    {
+        if (isDebugUseSocketData)
         {
-            Size = boardData.Size,
-        });
+            _gameStateMachine.Initialize(false);
+        }
+        else
+        {
+            GeneratingTiles.GenerateTile();
+            //_boardController.InitializeBoard(new BoardData
+            //{
+            //    Size = boardData.Size,
+            //});
+
+            _gameStateMachine.Initialize(true);
+        }
+
+        
 
         if (initCompleted != null)
         {

@@ -1,24 +1,13 @@
 using Core;
 using UnityEngine;
 
-public class Tile : PooledMono
+public class Tile : BaseTile
 {
-    [SerializeField]
-    protected SpriteRenderer _tileSpriteRenderer;
+    public TileType TileType { get; private set; }
 
-    [SerializeField]
-    protected TileSpriteSO _tileSpriteSO;
-
-    private bool _isLocked;
-
-    private Vector2Int _position;
-
-    public bool IsLocked { get { return _isLocked; } }
-
-    public Vector2Int Position { get { return _position; } set { _position = value; } }
-
-    public virtual void Setup(TileType tileType)
+    public void Setup(TileType tileType)
     {
+        TileType = TileType;
         Sprite tileSprite = _tileSpriteSO.GetSpriteByTileType(tileType);
 
         if (_tileSpriteRenderer != null && tileSprite != null)

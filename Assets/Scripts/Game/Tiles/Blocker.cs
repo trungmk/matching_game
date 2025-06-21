@@ -1,12 +1,6 @@
 using UnityEngine;
 
-public enum BlockerType
-{
-	X = 0,
-	None
-}
-
-public class Blocker : Tile
+public class Blocker : BaseTile
 {
 	protected BlockerType _blockerType;
 
