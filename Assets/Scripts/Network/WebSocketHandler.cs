@@ -19,12 +19,19 @@ public class WebSocketHandler : MonoSingleton<WebSocketHandler>, IWebSocketHandl
 
     private void OnEnable()
     {
-        _networkClient.SubscribeWebSocketHandler(this);
+        if (_networkClient != null)
+        {
+            _networkClient.SubscribeWebSocketHandler(this);
+        }
+        
     }
 
     private void OnDisable()
     {
-        _networkClient.UnsubscribeWebSocketHandler();
+        if (_networkClient != null && _networkClient.gameObject != null)
+        {
+            _networkClient.UnsubscribeWebSocketHandler();
+        }
     }
 
     public void HandleClose(WebSocketCloseCode webSocketCloseCode)

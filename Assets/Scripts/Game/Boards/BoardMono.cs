@@ -120,7 +120,7 @@ public class BoardMono : MonoBehaviour
         }
     }
 
-    private async UniTask InitBoard(BoardItem[][] boardItems)
+    public async UniTask InitBoard(BoardItem[][] boardItems)
     {
         for (int y = 0; y < boardItems.Length; y++)
         {

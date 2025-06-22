@@ -72,7 +72,7 @@ public class GenerateNewTileState : IState
 
         await UniTask.WhenAll(moveTasks);
 
-        await UniTask.Delay(400);
+        await UniTask.Delay(200);
 
         _stateMachine.TransitionToState(GameStateType.MatchingAllBoard);
     }

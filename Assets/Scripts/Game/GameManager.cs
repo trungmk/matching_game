@@ -5,6 +5,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using MEC;
+using System.Threading.Tasks;
 
 public class GameManager : MonoSingleton<GameManager>
 {
@@ -22,40 +23,25 @@ public class GameManager : MonoSingleton<GameManager>
 
     public async UniTask InitGame(Action initCompleted)
     {
-        if (isUseSocketData)
+        if (GameDataManager.Instance.IsUseRemoteData)
         {
-
-            _gameStateMachine.Initialize();
-
-            if (initCompleted != null)
+            if (GameDataManager.Instance.RemoteData == null)
             {
-                initCompleted();
+                GameDataManager.Instance.LocalData = await GeneratingTiles.GetGeneratedBoardData(_boardController);
+                GameDataManager.Instance.RemoteData = GameDataManager.Instance.LocalData;
             }
+
+            GameDataManager.Instance.UpdateBoardData(GameDataManager.Instance.RemoteData);
+            _gameStateMachine.Initialize();
+            initCompleted?.Invoke();
         }
         else
         {
-            BoardData boardData = await GeneratingTiles.GetGeneratedBoardData(_boardController);
-            GameDataManager.Instance.UpdateBoardData(boardData, false);
+            GameDataManager.Instance.LocalData = await GeneratingTiles.GetGeneratedBoardData(_boardController);
+            GameDataManager.Instance.UpdateBoardData(GameDataManager.Instance.LocalData);
 
             _gameStateMachine.Initialize();
-            if (initCompleted != null)
-            {
-                initCompleted();
-            }
+            initCompleted?.Invoke();
         }
-
-        //Timing.RunCoroutine(StartToRefreshBoardData());
-    }
-
-    public async void RefreshData()
-    {
-        await NetworkClient.Instance.SendSocketMessage("{\"action\":\"refresh_board\"}");
-    }    
-
-    private IEnumerator<float> StartToRefreshBoardData()
-    {
-        yield return Timing.WaitForSeconds(3f);
-
-        RefreshData();
     }
 }

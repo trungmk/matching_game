@@ -11,23 +11,15 @@ public class GameDataManager : MonoSingleton<GameDataManager>
 {
     public event Action<BoardData> OnBoardDataUpdated;
 
-    private BoardData _boardData;
+    private BoardData _currentBoardData;
 
-    public BoardData CurrentBoardData => _boardData;
+    public BoardData CurrentBoardData => _currentBoardData;
 
-    public BoardData GetBoardData()
-    {
-        return _boardData;
-    }
+    public BoardData RemoteData { get; set; }
 
-    public async UniTask<BoardData> GetBoardDataAsync()
-    {
-        if (_boardData == null)
-        {
-            await UniTask.Yield();
-        }
-        return _boardData;
-    }
+    public BoardData LocalData { get; set; }
+
+    public bool IsUseRemoteData { get; set; } = false;
 
     private void OnEnable()
     {
@@ -43,9 +35,9 @@ public class GameDataManager : MonoSingleton<GameDataManager>
     {
         if (boardMessage == null || boardMessage.Board == null) 
             return;
-        
-        _boardData = boardMessage.Board;
-        OnBoardDataUpdated?.Invoke(_boardData);
+
+        RemoteData = boardMessage.Board;
+        OnBoardDataUpdated?.Invoke(RemoteData);
     }
 
     public void UpdateBoardData(BoardData boardData, bool isRemote = true)
@@ -55,11 +47,11 @@ public class GameDataManager : MonoSingleton<GameDataManager>
             return;
         }
 
-        _boardData = boardData;
+        _currentBoardData = boardData;
     }
     
     public void ClearBoardData()
     {
-        _boardData = null;
+        _currentBoardData = null;
     }
 }

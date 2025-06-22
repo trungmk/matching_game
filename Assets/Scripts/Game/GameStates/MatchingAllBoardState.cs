@@ -47,7 +47,8 @@ public class MatchingAllBoardState : IState
         BoardController boardController = _gameStateMachine.BoardController;
 
         List<HashSet<Tile>> matchedTileGroup = boardController.MatchedChains;
-        var disappearTasks = new List<UniTask>();
+        List<UniTask> disappearTasks = new List<UniTask>();
+
         for (int i = 0; i < matchedTileGroup.Count; i++)
         {
             HashSet<Tile> matchedTiles = matchedTileGroup[i];
@@ -62,7 +63,7 @@ public class MatchingAllBoardState : IState
 
         await _gameStateMachine.BoardController.ApplyGravity();
 
-        await UniTask.Delay(500);
+        await UniTask.Delay(100);
 
         _gameStateMachine.TransitionToState(GameStateType.GenerateNewTile);
     }

@@ -20,7 +20,7 @@ public class InitializationState : IState
         var boardData = GameDataManager.Instance.CurrentBoardData;
 
         await _gameStateMachine.BoardController.InitializeBoard(boardData);
-        await UniTask.Delay(1000);
+        await UniTask.Delay(600);
 
         _gameStateMachine.TransitionToState(GameStateType.MatchingAllBoard);
 

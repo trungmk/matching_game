@@ -40,7 +40,7 @@ public class Tile : BaseTile
         return seq.AsyncWaitForCompletion().AsUniTask();
     }
 
-    public async UniTask PlayDisappearFX(float duration = 0.25f)
+    public async UniTask PlayDisappearFX(float duration = 0.2f)
     {
         Sequence seq = DOTween.Sequence();
         seq.Join(_tileSpriteRenderer.DOFade(0f, duration));

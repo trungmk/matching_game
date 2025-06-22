@@ -47,6 +47,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _tileSpriteRenderer: {fileID: 5842398069319506683}
   _tileSpriteSO: {fileID: 11400000, guid: 444772eac71805c4f9af2c4cbbd8fc48, type: 2}
+  _initLocalScale: {x: 1, y: 1, z: 1}
 --- !u!1 &8390414253404742277
 GameObject:
   m_ObjectHideFlags: 0

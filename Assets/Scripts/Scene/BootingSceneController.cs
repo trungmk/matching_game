@@ -6,20 +6,11 @@ using UnityEngine;
 
 public class BootingSceneController : SceneController
 {
-    private void OnEnable()
+    public override void OnLoaded()
     {
         ObjectPooling.Instance.OnLoadPoolsCompleted += Handle_OnloadPoolCompleted;
         GameDataManager.Instance.OnBoardDataUpdated += HandleBoardDataUpdated;
-    }
 
-    private void OnDisable()
-    {
-        ObjectPooling.Instance.OnLoadPoolsCompleted -= Handle_OnloadPoolCompleted;
-        GameDataManager.Instance.OnBoardDataUpdated -= HandleBoardDataUpdated;
-    }
-
-    public override void OnLoaded()
-    {
         ObjectPooling.Instance.Init(null);
 
         UIManager.Instance.Show<SplashScreenTransition>();
@@ -30,6 +21,12 @@ public class BootingSceneController : SceneController
         NetworkClient.Instance.ConnectWebSocket();
     }
 
+    public override void OnUnloaded()
+    {
+        ObjectPooling.Instance.OnLoadPoolsCompleted -= Handle_OnloadPoolCompleted;
+        GameDataManager.Instance.OnBoardDataUpdated -= HandleBoardDataUpdated;
+    }
+
     private void HandleBoardDataUpdated(BoardData data)
     {
         
@@ -37,8 +34,8 @@ public class BootingSceneController : SceneController
 
     private IEnumerator<float> ChangeScene()
     {
-        yield return Timing.WaitForSeconds(2f); 
-        CoreSceneManager.Instance.ChangeScene(ContextNameGenerated.CONTEXT_GAME);
+        yield return Timing.WaitForOneFrame;
+        CoreSceneManager.Instance.ChangeScene(ContextNameGenerated.CONTEXT_MENU);
     }
 
     private void Handle_OnloadPoolCompleted()

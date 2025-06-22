@@ -55,7 +55,8 @@ public class HandleUserInputState : IState
         _potentailMatchTiles = MatchSystem.FindPotentialMatchesForTile(_stateMachine.BoardController);
         if (_potentailMatchTiles == null)
         {
-            Debug.Log("END GAME!");
+            Debug.Log("GAME OVER!");
+            _stateMachine.TransitionToState(GameStateType.Reload);
             return;
         }
 

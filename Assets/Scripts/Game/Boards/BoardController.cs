@@ -151,6 +151,11 @@ public class BoardController : MonoBehaviour
         return UniTask.WhenAll(tasks);
     }
 
+    public async UniTask InitBoard(BoardData boardData)
+    {
+        await _board.InitBoard(boardData.Items);
+    }
+
     public async UniTask<Tile> CloneTile(Tile tile, bool isActive = false)
     {
         if (_board == null)

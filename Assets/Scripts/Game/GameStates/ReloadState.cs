@@ -15,9 +15,41 @@ public class ReloadState : IState
         _stateMachine = stateMachine;
     }
 
-    public void Enter()
+    public async void Enter()
     {
+        GameDataManager.Instance.LocalData = await GeneratingTiles.GetGeneratedBoardData(_stateMachine.BoardController);
+        GameDataManager.Instance.UpdateBoardData(GameDataManager.Instance.LocalData);
 
+        int boardSize = _stateMachine.BoardController.Board.BoardSize;
+        List<UniTask> disappearTasks = new List<UniTask>();
+
+        for (int y = 0; y < boardSize; y++)
+        {
+            for (int x = 0; x < boardSize; x++)
+            {
+                Tile tile = _stateMachine.BoardController.Board.GetTileByBoardPosition<Tile>(new UnityEngine.Vector2Int(x, y));
+                if (tile != null)
+                {
+                    disappearTasks.Add(tile.PlayDisappearFX());
+                }
+                else
+                {
+                    Blocker blocker = _stateMachine.BoardController.Board.GetTileByBoardPosition<Blocker>(new UnityEngine.Vector2Int(x, y));
+                    if (blocker != null)
+                    {
+                        disappearTasks.Add(blocker.Disappear());
+                    }
+                }
+            }
+        }
+
+        await UniTask.WhenAll(disappearTasks);
+
+        await _stateMachine.BoardController.InitBoard(GameDataManager.Instance.CurrentBoardData);
+
+        await UniTask.Delay(800);
+
+        _stateMachine.TransitionToState(GameStateType.MatchingAllBoard);
     }
 
     public void Exit()
