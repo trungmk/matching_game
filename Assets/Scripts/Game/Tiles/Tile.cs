@@ -31,30 +31,29 @@ public class Tile : BaseTile
         }
     }
 
-    public void LocalMoveTo(Vector3 targetLocalPosition, float duration = 0.2f, Action<Tile> callback = null)
+    public UniTask LocalMoveTo(Vector3 targetLocalPosition, float duration = 0.2f)
     {
         Sequence seq = DOTween.Sequence();
-        var moveTween = transform.DOLocalMove(targetLocalPosition, duration).SetEase(Ease.InOutCubic);
+        var moveTween = transform.DOLocalMove(targetLocalPosition, duration).SetEase(Ease.OutQuad);
         seq.Append(moveTween);
-        seq.OnComplete(() =>
-        {
-            callback?.Invoke(this);
-        });
+        return seq.AsyncWaitForCompletion().AsUniTask();
     }
 
-    public void PlayDisappearFX(float duration = 0.25f)
+    public async UniTask PlayDisappearFX(float duration = 0.25f)
     {
         Sequence seq = DOTween.Sequence();
         seq.Join(_tileSpriteRenderer.DOFade(0f, duration));
         seq.Join(transform.DOScale(Vector3.zero, duration));
-        seq.OnComplete(() =>
-        {
-            _tileSpriteRenderer.color = new Color(1, 1, 1, 1);
-            transform.localScale = Vector3.one;
-            ReturnToPool();
-        });
 
-        PlayDisappearParticle().Forget();
+        var visualFX = seq.AsyncWaitForCompletion().AsUniTask();
+        var particleFX = PlayDisappearParticle();
+
+        await UniTask.WhenAll(visualFX, particleFX);
+        
+        _tileSpriteRenderer.color = new Color(1, 1, 1, 1);
+        transform.localScale = _initLocalScale;
+
+        ReturnToPool();
     }
 
     public async UniTask PlayDisappearParticle()
@@ -66,7 +65,6 @@ public class Tile : BaseTile
             fx.SetActive(true);
             fx.transform.position = this.transform.position;
 
-            // wait on main thread for 1 second
             await UniTask.Delay(800);
 
             fx.transform.position = this.transform.position;

@@ -1,5 +1,7 @@
-using System.Collections.Generic;
+using Core;
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class BoardController : MonoBehaviour
@@ -16,6 +18,15 @@ public class BoardController : MonoBehaviour
     public BoardMono Board
     {
         get { return _board; }
+    }
+
+    private void Awake()
+    {
+        if (_board == null)
+        {
+            Debug.LogError("BoardMono is not assigned in the inspector.");
+            return;
+        }
     }
 
     public async UniTask InitializeBoard(BoardData boardData)
@@ -56,7 +67,6 @@ public class BoardController : MonoBehaviour
         if (_board == null)
         {
             Debug.LogError("BoardMono is null.");
-            return;
         }
 
         _board.SwapTiles(firstTile, secondTile);
@@ -95,8 +105,9 @@ public class BoardController : MonoBehaviour
         return await _board.CreateRandomTile();
     }
 
-    public void ApplyGravity()
+    public UniTask ApplyGravity()
     {
+        var tasks = new List<UniTask>();
         for (int x = 0; x < _board.BoardSize; x++)
         {
             int fallToY = -1;
@@ -129,13 +140,60 @@ public class BoardController : MonoBehaviour
                         targetCell.Tile = tile;
 
                         tile.BoardPosition = targetCell.BoardPosition;
-                        tile.LocalMoveTo(targetCell.LocalPosition);
+                        var moveTask = tile.LocalMoveTo(targetCell.LocalPosition, 0.13f);
+                        tasks.Add(moveTask);
 
                         fallToY++;
                     }
                 }
             }
         }
+        return UniTask.WhenAll(tasks);
+    }
+
+    public async UniTask ClearBoard()
+    {
+        if (_board == null)
+        {
+            Debug.LogError("BoardMono is null.");
+            return;
+        }
+
+        var animTasks = new List<UniTask>();
+
+        for (int x = 0; x < _board.BoardSize; x++)
+        {
+            for (int y = 0; y < _board.BoardSize; y++)
+            {
+                var cell = _board.Cells[x, y];
+                if (cell != null && cell.Tile != null)
+                {
+                    if (cell.Tile is Tile tile)
+                    {
+                        animTasks.Add(AnimateAndReturnTile(tile));
+                        cell.Tile = null;
+                    }
+                }
+            }
+        }
+
+        await UniTask.WhenAll(animTasks);
+
+        _positionChangedList.Clear();
+        MatchedChains.Clear();
+    }
+
+    private async UniTask AnimateAndReturnTile(Tile tile)
+    {
+        await tile.transform.DOScale(1.2f, 0.12f)
+            .SetEase(Ease.OutBack)
+            .AsyncWaitForCompletion();
+
+        await tile.transform.DOLocalMoveY(tile.transform.localPosition.y - 1f, 0.18f)
+            .SetEase(Ease.InQuad)
+            .AsyncWaitForCompletion();
+
+        ObjectPooling.Instance.ReturnToPool(tile.gameObject);
     }
 
     private void OnDrawGizmos()

@@ -95,11 +95,9 @@ public class HandleUserInputState : IState
 
     private IEnumerator<float> Swap()
     {
-        yield return Timing.WaitForOneFrame;
-
         _stateMachine.BoardController.SwapTiles(_firstTile, _secondTile);
 
-        yield return Timing.WaitForSeconds(0.12f);
+        yield return Timing.WaitForSeconds(0.15f);
 
         HashSet<Tile> matchedTiles = MatchSystem.CheckMatchAtPosition(_firstTile.BoardPosition, _stateMachine.BoardController);
         if (matchedTiles.Count >= 3)
@@ -118,7 +116,6 @@ public class HandleUserInputState : IState
         // Revert
         _stateMachine.BoardController.SwapTiles(_secondTile, _firstTile);
 
-        yield return Timing.WaitForOneFrame;
         yield return Timing.WaitForOneFrame;
 
         _secondTile = null;

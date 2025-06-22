@@ -12,7 +12,6 @@ public class CellBG : PooledMono
     [SerializeField]
     private Color _darkColor = Color.white;
 
-
     public void SetColor(bool isLight)
     {
         if (isLight)

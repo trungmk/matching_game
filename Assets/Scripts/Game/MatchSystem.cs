@@ -54,6 +54,21 @@ public class MatchSystem
         return matchingGroup;
     }
 
+    //public static Dictionary<MatchPattern, HashSet<Tile>> GetAllPotentialMatching()
+    //{
+
+
+
+    //    return new Dictionary<MatchPattern, HashSet<Tile>>
+    //    {
+    //        { MatchPattern.Horizontal, new HashSet<Tile>() },
+    //        { MatchPattern.Vertical, new HashSet<Tile>() },
+    //        { MatchPattern.LShape, new HashSet<Tile>() },
+    //        { MatchPattern.TShape, new HashSet<Tile>() },
+    //        { MatchPattern.CrossShape, new HashSet<Tile>() }
+    //    };
+    //}
+
     public static List<HashSet<Tile>> CheckMatchWholeBoard(BoardController boardController)
     {
         List<HashSet<Tile>> matchedChains = new List<HashSet<Tile>>();

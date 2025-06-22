@@ -1,4 +1,4 @@
-using Core;
+﻿using Core;
 using MEC;
 using System;
 using System.Collections.Generic;
@@ -8,20 +8,19 @@ public class BootingSceneController : SceneController
 {
     private void OnEnable()
     {
+        ObjectPooling.Instance.OnLoadPoolsCompleted += Handle_OnloadPoolCompleted;
         GameDataManager.Instance.OnBoardDataUpdated += HandleBoardDataUpdated;
     }
 
     private void OnDisable()
     {
+        ObjectPooling.Instance.OnLoadPoolsCompleted -= Handle_OnloadPoolCompleted;
         GameDataManager.Instance.OnBoardDataUpdated -= HandleBoardDataUpdated;
     }
 
-    void Start()
+    public override void OnLoaded()
     {
-        ObjectPooling.Instance.Init((o) =>
-        {
-            Timing.RunCoroutine(ChangeScene());
-        });
+        ObjectPooling.Instance.Init(null);
 
         UIManager.Instance.Show<SplashScreenTransition>();
 
@@ -40,5 +39,10 @@ public class BootingSceneController : SceneController
     {
         yield return Timing.WaitForSeconds(2f); 
         CoreSceneManager.Instance.ChangeScene(ContextNameGenerated.CONTEXT_GAME);
+    }
+
+    private void Handle_OnloadPoolCompleted()
+    {
+        Timing.RunCoroutine(ChangeScene());
     }
 }

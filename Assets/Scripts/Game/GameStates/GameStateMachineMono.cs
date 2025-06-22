@@ -109,8 +109,6 @@ public class GameStateMachineMono : MonoBehaviour
             _currentStateType = stateType;
             TransitionTo(targetState);
         }
-
-        Tilemap tilemap = null;
     }
 
     private void Update()

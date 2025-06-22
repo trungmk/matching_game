@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using MEC;
 
 public class GameManager : MonoSingleton<GameManager>
 {
@@ -23,6 +24,7 @@ public class GameManager : MonoSingleton<GameManager>
     {
         if (isDebugUseSocketData)
         {
+
             _gameStateMachine.Initialize();
 
             if (initCompleted != null)
@@ -33,12 +35,26 @@ public class GameManager : MonoSingleton<GameManager>
         else
         {
             BoardData boardData = await GeneratingTiles.GenerateTile();
-            GameDataManager.Instance.UpdateBoardData(boardData);
+            GameDataManager.Instance.UpdateBoardData(boardData, false);
 
             if (initCompleted != null)
             {
                 initCompleted();
             }
         }
+
+        //Timing.RunCoroutine(StartToRefreshBoardData());
+    }
+
+    public async void RefreshData()
+    {
+        await NetworkClient.Instance.SendSocketMessage("{\"action\":\"refresh_board\"}");
+    }    
+
+    private IEnumerator<float> StartToRefreshBoardData()
+    {
+        yield return Timing.WaitForSeconds(3f);
+
+        RefreshData();
     }
 }

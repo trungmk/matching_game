@@ -48,7 +48,7 @@ public class GameDataManager : MonoSingleton<GameDataManager>
         OnBoardDataUpdated?.Invoke(_boardData);
     }
 
-    public void UpdateBoardData(BoardData boardData)
+    public void UpdateBoardData(BoardData boardData, bool isRemote = true)
     {
         if (boardData == null)
         {

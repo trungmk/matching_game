@@ -192,13 +192,11 @@ public class BoardMono : MonoBehaviour
         if (firstTile == null || secondTile == null)
         {
             Debug.LogError("One or both tiles are null.");
-            return;
         }
 
         if (firstTile.IsLocked || secondTile.IsLocked)
         {
             Debug.LogError("One or both tiles are locked.");
-            return;
         }
 
         Vector2Int firstPos = firstTile.BoardPosition;

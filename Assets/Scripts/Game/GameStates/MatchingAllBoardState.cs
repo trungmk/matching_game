@@ -44,23 +44,25 @@ public class MatchingAllBoardState : IState
 
     private async UniTask MatchAllBoardAsync()
     {
-        await UniTask.Yield();
         BoardController boardController = _gameStateMachine.BoardController;
 
         List<HashSet<Tile>> matchedTileGroup = boardController.MatchedChains;
+        var disappearTasks = new List<UniTask>();
         for (int i = 0; i < matchedTileGroup.Count; i++)
         {
             HashSet<Tile> matchedTiles = matchedTileGroup[i];
             foreach (Tile tile in matchedTiles)
             {
-                tile.PlayDisappearFX();
+                disappearTasks.Add(tile.PlayDisappearFX());
                 boardController.Board.Cells[tile.BoardPosition.x, tile.BoardPosition.y].Tile = null;
             }
         }
 
-        await UniTask.Delay(500);
+        await UniTask.WhenAll(disappearTasks);
 
-        _gameStateMachine.BoardController.ApplyGravity();
+        await _gameStateMachine.BoardController.ApplyGravity();
+
+        await UniTask.Delay(500);
 
         _gameStateMachine.TransitionToState(GameStateType.GenerateNewTile);
     }

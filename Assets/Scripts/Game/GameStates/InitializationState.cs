@@ -19,6 +19,17 @@ public class InitializationState : IState
         InitializeAsync().Forget();
     }
 
+    private async UniTask InitializeAsync()
+    {
+        _gameStateMachine.BoardController.MatchedChains.Clear();
+        var boardData = GameDataManager.Instance.CurrentBoardData;
+
+        await _gameStateMachine.BoardController.InitializeBoard(boardData);
+        await UniTask.Delay(1000);
+
+        _gameStateMachine.TransitionToState(GameStateType.MatchingAllBoard);
+    }
+
     //private IEnumerator<float> MatchTiles()
     //{
     //    yield return Timing.WaitForSeconds(1f);
@@ -51,14 +62,5 @@ public class InitializationState : IState
     public void Update()
     {
         
-    }
-
-    private async UniTask InitializeAsync()
-    {
-        _gameStateMachine.BoardController.MatchedChains.Clear();
-        var boardData = GameDataManager.Instance.CurrentBoardData;
-        await _gameStateMachine.BoardController.InitializeBoard(boardData);
-       
-        _gameStateMachine.TransitionToState(GameStateType.MatchingAllBoard);
     }
 }

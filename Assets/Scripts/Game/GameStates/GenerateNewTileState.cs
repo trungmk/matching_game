@@ -29,6 +29,7 @@ public class GenerateNewTileState : IState
     {
         BoardController boardController = _stateMachine.BoardController;
         int boardSize = boardController.Board.BoardSize;
+        var moveTasks = new List<UniTask>();
 
         for (int x = 0; x < boardSize; x++)
         {
@@ -37,6 +38,7 @@ public class GenerateNewTileState : IState
             {
                 BoardCell cell = boardController.Board.Cells[x, y];
 
+                // Check for blockers, if found, stop checking further down this column
                 if (cell.Tile != null && cell.Tile is Blocker)
                 {
                     break;
@@ -60,12 +62,17 @@ public class GenerateNewTileState : IState
                     newTile.BoardPosition = new Vector2Int(x, cell.BoardPosition.y);
                     newTile.transform.localPosition = new Vector2(cell.LocalPosition.x, 13f);
                     cell.Tile = newTile;
-                    newTile.LocalMoveTo(cell.LocalPosition, 0.3f);
+                    var moveTask = newTile.LocalMoveTo(cell.LocalPosition, 0.13f);
+                    moveTasks.Add(moveTask);
 
                     await UniTask.Delay(10);
                 }
             }
         }
+
+        await UniTask.WhenAll(moveTasks);
+
+        await UniTask.Delay(400);
 
         _stateMachine.TransitionToState(GameStateType.MatchingAllBoard);
     }
