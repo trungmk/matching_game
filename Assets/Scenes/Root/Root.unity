@@ -1409,8 +1409,8 @@ MonoBehaviour:
       m_SubObjectType: 
       m_SubObjectGUID: 
       m_EditorAssetChanged: 0
-    AmountToPool: 100
-    NeedModifyAfterInit: 1
+    AmountToPool: 102
+    NeedModifyAfterInit: 0
   - GameObjectToPool: {fileID: 7114971103371628199, guid: a27e74eaaac9fdc4ca61a982463a81bd, type: 3}
     PoolType: 1
     AddressName: Blocker

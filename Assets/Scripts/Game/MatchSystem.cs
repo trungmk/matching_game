@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class MatchSystem
@@ -11,20 +12,14 @@ public class MatchSystem
             new Vector2Int(-1, 0)   
     };
 
-    public static HashSet<Tile> CheckMatchAtPosition(Vector2Int boardPos, BoardController boardController)
+    public static HashSet<Tile> CheckMatchAtPosition(Tile tile, BoardController boardController)
     {
-        if (!IsValidPosition(boardPos, boardController.Board.BoardSize))
-        {
-            Debug.LogError($"Invalid board position: {boardPos}.");
-            return null;
-        }
-
-        Tile currentTile = boardController.GetTileByBoardPosition<Tile>(boardPos);
-
-        if (currentTile == null)
+        if (tile == null)
         {
             return null;
         }
+
+        Tile currentTile = tile;
 
         int boardSize = boardController.Board.BoardSize;
         HashSet<Tile> matchingGroup = new HashSet<Tile>();
@@ -41,7 +36,7 @@ public class MatchSystem
             for (int i = 0; i < _directions.Length; i++)
             {
                 Vector2Int needToCheckPos = currentTile.BoardPosition + _directions[i];
-                Tile potentialTile = GetPotentialTile(needToCheckPos, boardSize, checkType, boardController);
+                Tile potentialTile = GetPotentialMatchingTile(needToCheckPos, boardSize, checkType, boardController);
 
                 if (potentialTile != null && !matchingGroup.Contains(potentialTile))
                 {
@@ -54,20 +49,68 @@ public class MatchSystem
         return matchingGroup;
     }
 
-    //public static Dictionary<MatchPattern, HashSet<Tile>> GetAllPotentialMatching()
-    //{
+    public static HashSet<Tile> FindPotentialMatchesForTile(BoardController boardController)
+    {
+        int boardSize = boardController.Board.BoardSize;
+        for (int y = 0; y < boardSize; y++)
+        {
+            for (int x = 0; x < boardSize; x++)
+            {
+                Vector2Int posA = new Vector2Int(x, y);
+                Tile tileA = boardController.GetTileByBoardPosition<Tile>(posA);
+                if (tileA == null || tileA is Blocker)
+                {
+                    continue;
+                }
 
+                for (int i = 0; i < _directions.Length; i++)
+                {
+                    Vector2Int posB = posA + _directions[i];
+                    if (!IsValidPosition(posB, boardSize))
+                    {
+                        continue;
+                    }
 
+                    Tile tileB = boardController.GetTileByBoardPosition<Tile>(posB);
+                    if (tileB == null || tileB is Blocker)
+                    {
+                        continue;
+                    }
 
-    //    return new Dictionary<MatchPattern, HashSet<Tile>>
-    //    {
-    //        { MatchPattern.Horizontal, new HashSet<Tile>() },
-    //        { MatchPattern.Vertical, new HashSet<Tile>() },
-    //        { MatchPattern.LShape, new HashSet<Tile>() },
-    //        { MatchPattern.TShape, new HashSet<Tile>() },
-    //        { MatchPattern.CrossShape, new HashSet<Tile>() }
-    //    };
-    //}
+                    // Swap tiles in board
+                    boardController.Board.Cells[x, y].Tile = tileB;
+                    boardController.Board.Cells[posB.x, posB.y].Tile = tileA;
+
+                    // Save old positions
+                    Vector2Int oldPosA = tileA.BoardPosition;
+                    Vector2Int oldPosB = tileB.BoardPosition;
+                    tileA.BoardPosition = posB;
+                    tileB.BoardPosition = posA;
+
+                    // Check for match at both positions
+                    var matchA = CheckMatchAtPosition(tileA, boardController);
+                    var matchB = CheckMatchAtPosition(tileB, boardController);
+
+                    // Swap back
+                    boardController.Board.Cells[x, y].Tile = tileA;
+                    boardController.Board.Cells[posB.x, posB.y].Tile = tileB;
+                    tileA.BoardPosition = oldPosA;
+                    tileB.BoardPosition = oldPosB;
+
+                    if (matchA != null && matchA.Count >= 3)
+                    {
+                        return matchA;
+                    }    
+                        
+                    if (matchB != null && matchB.Count >= 3)
+                    {
+                        return matchB;
+                    }    
+                }
+            }
+        }
+        return null;
+    }
 
     public static List<HashSet<Tile>> CheckMatchWholeBoard(BoardController boardController)
     {
@@ -92,7 +135,7 @@ public class MatchSystem
                     continue;
                 }
 
-                HashSet<Tile> tiles = CheckMatchAtPosition(currentPosition, boardController);
+                HashSet<Tile> tiles = CheckMatchAtPosition(tile, boardController);
                 if (tiles.Count >= 3)
                 {
                     matchedChains.Add(tiles);
@@ -116,7 +159,7 @@ public class MatchSystem
         return false;
     }
 
-    private static Tile GetPotentialTile(Vector2Int boardPos, int boardSize, TileType tileType, BoardController boardController)
+    private static Tile GetPotentialMatchingTile(Vector2Int boardPos, int boardSize, TileType tileType, BoardController boardController)
     {
         if (IsValidPosition(boardPos, boardSize))
         {

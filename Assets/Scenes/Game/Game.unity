@@ -521,7 +521,7 @@ MonoBehaviour:
   _boardController: {fileID: 1518027379}
   _gameStateMachine: {fileID: 771765606}
   boardSize: 10
-  isDebugUseSocketData: 1
+  isDebugUseSocketData: 0
 --- !u!1 &1698593069
 GameObject:
   m_ObjectHideFlags: 0

@@ -177,6 +177,11 @@ public class BoardMono : MonoBehaviour
             return null; 
         }
 
+        if (_cells[tilePosition.x, tilePosition.y].Tile == null)
+        {
+            return null;
+        }
+
         return _cells[tilePosition.x, tilePosition.y].Tile as T;
     }
 
@@ -223,6 +228,11 @@ public class BoardMono : MonoBehaviour
             return null;
         }
 
+        if (_cells[boardPosition.x, boardPosition.y].Tile == null)
+        {
+            return null;
+        }
+
         return _cells[boardPosition.x, boardPosition.y].Tile as T;
     }
 
@@ -243,5 +253,22 @@ public class BoardMono : MonoBehaviour
         Tile tile = await _tileFactory.CreateTile(randomType.ToString());
         tile.transform.SetParent(_cellsHolder);
         return tile;
+    }
+
+    public async UniTask<Tile> CloneTile(Tile tileToClone, bool isActive)
+    {
+        if (tileToClone == null)
+        {
+            Debug.LogError("Tile to clone is null.");
+            return null;
+        }
+
+        Tile clonedTile = await _tileFactory.CreateTile(tileToClone.TileType.ToString());
+        clonedTile.gameObject.SetActive(false);
+        clonedTile.transform.SetParent(_cellsHolder);
+        clonedTile.BoardPosition = tileToClone.BoardPosition;
+        clonedTile.transform.localPosition = tileToClone.transform.localPosition;
+        clonedTile.transform.localScale = tileToClone.transform.localScale;
+        return clonedTile;
     }
 }

@@ -18,11 +18,11 @@ public class GameManager : MonoSingleton<GameManager>
     private int boardSize = 10;
 
     [SerializeField]
-    private bool isDebugUseSocketData = false;
+    private bool isUseSocketData = false;
 
     public async UniTask InitGame(Action initCompleted)
     {
-        if (isDebugUseSocketData)
+        if (isUseSocketData)
         {
 
             _gameStateMachine.Initialize();
@@ -34,9 +34,10 @@ public class GameManager : MonoSingleton<GameManager>
         }
         else
         {
-            BoardData boardData = await GeneratingTiles.GenerateTile();
+            BoardData boardData = await GeneratingTiles.GetGeneratedBoardData(_boardController);
             GameDataManager.Instance.UpdateBoardData(boardData, false);
 
+            _gameStateMachine.Initialize();
             if (initCompleted != null)
             {
                 initCompleted();

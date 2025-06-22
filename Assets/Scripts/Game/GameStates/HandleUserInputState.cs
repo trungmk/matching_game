@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using DG.Tweening;
 
 public class HandleUserInputState : IState
 {
@@ -14,6 +15,9 @@ public class HandleUserInputState : IState
     private BaseTile _secondTile;
     private Camera _mainCamera;
 
+    private HashSet<Tile> _potentailMatchTiles;
+    private CoroutineHandle _potentialMatchCoroutine;
+
     public HandleUserInputState(GameStateMachineMono stateMachine)
     {
         _stateMachine = stateMachine;
@@ -22,9 +26,13 @@ public class HandleUserInputState : IState
 
     public void Enter()
     {
+        _potentailMatchTiles = null;
+        _potentialMatchCoroutine = default;
         EventManager.Instance.AddListener<TouchDownEvent>(Handle_TouchDownEvent);
         //EventManager.Instance.AddListener<DragEvent>(Handle_DragEvent);
         EventManager.Instance.AddListener<TouchUpEvent>(Handle_TouchUpEvent);
+
+        FindPotentialMatches();
     }
 
     public void Exit()
@@ -32,15 +40,35 @@ public class HandleUserInputState : IState
         EventManager.Instance.RemoveListener<TouchDownEvent>(Handle_TouchDownEvent);
         //EventManager.Instance.RemoveListener<DragEvent>(Handle_DragEvent);
         EventManager.Instance.RemoveListener<TouchUpEvent>(Handle_TouchUpEvent);
+
+        ResetAnimationPotentialTiles();
     }
 
     public void Update()
     {
-        
+    }
+
+    private void FindPotentialMatches()
+    {
+        ResetAnimationPotentialTiles(); 
+
+        _potentailMatchTiles = MatchSystem.FindPotentialMatchesForTile(_stateMachine.BoardController);
+        if (_potentailMatchTiles == null)
+        {
+            Debug.Log("END GAME!");
+            return;
+        }
+
+        if (_potentailMatchTiles.Count >= 3)
+        {
+            _potentialMatchCoroutine = Timing.RunCoroutine(ShowPotentialMatchAfterDelay());
+        }
     }
 
     private void Handle_TouchUpEvent(TouchUpEvent @event)
     {
+        ResetAnimationPotentialTiles();
+
         Vector2 worldPos = _mainCamera.ScreenToWorldPoint(@event.TouchedPosition);
         Tile tile = _stateMachine.BoardController.GetTileFromWorldPosition<Tile>(worldPos);
 
@@ -88,9 +116,24 @@ public class HandleUserInputState : IState
         
     }
 
-    private void RevertSwapTiles(BaseTile firstTile, BaseTile secondTile)
+    private void ResetAnimationPotentialTiles()
     {
-        
+        if (_potentialMatchCoroutine != default)
+        {
+            Timing.KillCoroutines(_potentialMatchCoroutine); 
+            _potentialMatchCoroutine = default;
+        }
+
+        if (_potentailMatchTiles != null)
+        {
+            foreach (var tile in _potentailMatchTiles)
+            {
+                tile.transform.DOKill(); 
+                tile.ResetToOriginalScale(); 
+            }
+
+            _potentailMatchTiles.Clear();
+        }
     }
 
     private IEnumerator<float> Swap()
@@ -99,14 +142,14 @@ public class HandleUserInputState : IState
 
         yield return Timing.WaitForSeconds(0.15f);
 
-        HashSet<Tile> matchedTiles = MatchSystem.CheckMatchAtPosition(_firstTile.BoardPosition, _stateMachine.BoardController);
+        HashSet<Tile> matchedTiles = MatchSystem.CheckMatchAtPosition(_firstTile as Tile, _stateMachine.BoardController);
         if (matchedTiles.Count >= 3)
         {
             _stateMachine.TransitionToState(GameStateType.MatchingAllBoard);
             yield break;
         }
 
-        matchedTiles = MatchSystem.CheckMatchAtPosition(_secondTile.BoardPosition, _stateMachine.BoardController);
+        matchedTiles = MatchSystem.CheckMatchAtPosition(_secondTile as Tile, _stateMachine.BoardController);
         if (matchedTiles.Count >= 3)
         {
             _stateMachine.TransitionToState(GameStateType.MatchingAllBoard);
@@ -120,6 +163,7 @@ public class HandleUserInputState : IState
 
         _secondTile = null;
         _firstTile = null;
+        FindPotentialMatches();
     }
 
     private bool IsAdjacent(Vector2Int a, Vector2Int b)
@@ -129,5 +173,15 @@ public class HandleUserInputState : IState
         int dy = Mathf.Abs(a.y - b.y);
         bool isAdjacent = (dx + dy == 1);
         return isAdjacent;
+    }
+
+    private IEnumerator<float> ShowPotentialMatchAfterDelay()
+    {
+        yield return Timing.WaitForSeconds(3f);
+
+        foreach (var tile in _potentailMatchTiles)
+        {
+            tile.transform.DOScale(1.2f, 0.2f).SetEase(Ease.OutBack).SetLoops(-1);
+        }
     }
 }

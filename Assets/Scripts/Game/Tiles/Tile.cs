@@ -8,6 +8,7 @@ using UnityEngine.UI;
 public class Tile : BaseTile
 {
     public TileType TileType { get; private set; }
+
     public Vector3 _initLocalScale = Vector3.one;
 
     private void OnDisable()
@@ -71,6 +72,11 @@ public class Tile : BaseTile
             fx.SetActive(false);
             ObjectPooling.Instance.ReturnToPool(fx);
         }
+    }
+
+    public void ResetToOriginalScale()
+    {
+        transform.localScale = _initLocalScale;
     }
 
     private async UniTask<GameObject> GetTileDisappearParticle()

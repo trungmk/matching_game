@@ -151,6 +151,22 @@ public class BoardController : MonoBehaviour
         return UniTask.WhenAll(tasks);
     }
 
+    public async UniTask<Tile> CloneTile(Tile tile, bool isActive = false)
+    {
+        if (_board == null)
+        {
+            Debug.LogError("BoardMono is null.");
+            return null;
+        }
+        if (tile == null)
+        {
+            Debug.LogError("Tile is null.");
+            return null;
+        }
+
+        return await _board.CloneTile(tile, isActive);
+    }
+
     public async UniTask ClearBoard()
     {
         if (_board == null)
