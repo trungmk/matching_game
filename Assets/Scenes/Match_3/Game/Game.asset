@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Scene: {fileID: 102900000, guid: 7186c110928efde4a9a736ad249a721f, type: 3}
   GUID: 
-  ScenePath: Assets/Scenes/Game/Game.unity
+  ScenePath: Assets/Scenes/Match_3/Game/Game.unity
   SceneName: Game
   IsGameContext: 1

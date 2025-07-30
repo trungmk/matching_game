@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Context_Create Context
   m_EditorClassIdentifier: 
   Scene: {fileID: 102900000, guid: dd45cfd8138f3584e9d5bb1545f8a9ea, type: 3}
-  GUID: 
-  ScenePath: Assets/Scenes/Booting/Booting.unity
+  GUID: f195ca394ca51e54898996afd9ba63bf
+  ScenePath: Assets/Scenes/Match_3/Booting/Booting.unity
   SceneName: Booting
   IsGameContext: 1

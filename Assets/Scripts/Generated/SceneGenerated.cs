@@ -13,11 +13,11 @@ public static class ContextRegistration
 	[UnityEngine.RuntimeInitializeOnLoadMethod]
 	static void AssignContext()
 	{
-		SceneHandler.AddContext (-81938762, "Booting", "Assets/Scenes/Booting/Booting.unity");
+		SceneHandler.AddContext (-81938762, "Booting", "Assets/Scenes/Match_3/Booting/Booting.unity");
 
-		SceneHandler.AddContext (1582856036, "Game", "Assets/Scenes/Game/Game.unity");
+		SceneHandler.AddContext (1582856036, "Game", "Assets/Scenes/Match_3/Game/Game.unity");
 
-		SceneHandler.AddContext (-1078770617, "Menu", "Assets/Scenes/Menu/Menu.unity");
+		SceneHandler.AddContext (-1078770617, "Menu", "Assets/Scenes/Match_3/Menu/Menu.unity");
 
 	}
 }

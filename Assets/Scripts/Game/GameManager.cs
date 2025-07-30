@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using MEC;
 using System.Threading.Tasks;
+using Core;
 
 public class GameManager : MonoSingleton<GameManager>
 {
@@ -32,16 +33,25 @@ public class GameManager : MonoSingleton<GameManager>
             }
 
             GameDataManager.Instance.UpdateBoardData(GameDataManager.Instance.RemoteData);
-            _gameStateMachine.Initialize();
-            initCompleted?.Invoke();
+            //_gameStateMachine.Initialize();
+            //initCompleted?.Invoke();
         }
         else
         {
             GameDataManager.Instance.LocalData = await GeneratingTiles.GetGeneratedBoardData(_boardController);
             GameDataManager.Instance.UpdateBoardData(GameDataManager.Instance.LocalData);
 
-            _gameStateMachine.Initialize();
-            initCompleted?.Invoke();
+            
         }
+
+        _gameStateMachine.Initialize();
+        initCompleted?.Invoke();
     }
+
+    private async UniTask<BoardData> LoadData()
+    {
+        BoardData boardData = await GeneratingTiles.GetGeneratedBoardData(_boardController);
+
+        return boardData;
+    }    
 }

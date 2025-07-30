@@ -21,6 +21,21 @@ public class GameDataManager : MonoSingleton<GameDataManager>
 
     public bool IsUseRemoteData { get; set; } = false;
 
+    private LocalDataManager _localDataManager = new LocalDataManager();
+
+    public LocalDataManager LocalDataManager
+    {
+        get
+        {
+            if (_localDataManager == null)
+            {
+                _localDataManager = new LocalDataManager();
+            }
+
+            return _localDataManager;
+        }
+    }
+
     private void OnEnable()
     {
         WebSocketHandler.Instance.OnGetMessageSuccess += UpdateBoardMessage;
@@ -29,6 +44,11 @@ public class GameDataManager : MonoSingleton<GameDataManager>
     private void OnDisable()
     {
         WebSocketHandler.Instance.OnGetMessageSuccess -= UpdateBoardMessage;
+    }
+
+    private void Awake()
+    {
+        _localDataManager.Init();
     }
 
     public void UpdateBoardMessage(BoardMessage boardMessage)
