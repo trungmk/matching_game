@@ -1,26 +1,26 @@
-Shader "Custom/Blend2Tex"
+Shader "Custom/Shadow"
 {
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-        _SecondTex ("Texture", 2D) = "white" {}
+        _ShadowColor ("Shadow Color", Color) = (0,0,0,0.5)
     }
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
-        //Blend SrcAlpha OneMinusSrcAlpha
-        Blend Zero DstColor
-        BlendOp Add
+        Tags { "Queue"="Transparent" "RenderType"="Transparent" }
 
-        LOD 100
+        Blend SrcAlpha OneMinusSrcAlpha
+
+        //Blend DstColor Zero, SrcAlpha OneMinusSrcAlpha
+
+        // Multiply shadow blend
+        //Blend DstColor Zero
 
         Pass
         {
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            // make fog work
-            #pragma multi_compile_fog
 
             #include "UnityCG.cginc"
 
@@ -38,24 +38,20 @@ Shader "Custom/Blend2Tex"
 
             sampler2D _MainTex;
             float4 _MainTex_ST;
-            sampler2D _SecondTex;
-            float4 _SecondTex_ST;
+            fixed4 _ShadowColor;
 
             v2f vert (appdata v)
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-                UNITY_TRANSFER_FOG(o,o.vertex);
                 return o;
             }
 
             fixed4 frag (v2f i) : SV_Target
             {
                 fixed4 col = tex2D(_MainTex, i.uv);
-                fixed4 col2 = tex2D(_SecondTex, i.uv);
-                //return 1 - (1 - col) * (1 - col2);
-                return col + col2;
+                return col * _ShadowColor;
             }
             ENDCG
         }
